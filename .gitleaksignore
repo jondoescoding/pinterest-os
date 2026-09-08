@@ -1,0 +1,5 @@
+# Synthetic SHA-256 idempotency key in a committed dry-run trace.
+979452e03a810016498da6dd2c73bbff673b4a7f:.codex/artifacts/pipeline-dry-run-trace.json:generic-api-key:24
+
+# Empty commented DATABASE_AUTH_TOKEN example; no credential value exists.
+ef4e1d4000691c3d34cd1377cdd22afc3c475e98:.env.example:generic-api-key:9

@@ -1,0 +1,75 @@
+name: Fit Sets Daily
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run without Postiz scheduling or Telegram send"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+      count:
+        description: "Number of sets to compose"
+        required: true
+        default: "3"
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "3"
+          - "4"
+          - "5"
+  schedule:
+    - cron: "0 13 * * *"
+
+jobs:
+  fits-daily:
+    runs-on: ubuntu-latest
+    env:
+      CHANNEL3_API_KEY: ${{ secrets.CHANNEL3_API_KEY }}
+      POSTIZ_API_KEY: ${{ secrets.POSTIZ_API_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_AUTH_TOKEN: ${{ secrets.DATABASE_AUTH_TOKEN }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: pnpm/action-setup@b0f76dfb45f55f8421693e4803ac7bb65143bd34 # v6
+        with:
+          version: 10.27.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm lint
+      - name: Verify pipeline secrets
+        run: |
+          live_run=false
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.dry_run }}" != "true" ]; then
+            live_run=true
+          fi
+          test -n "$CHANNEL3_API_KEY"
+          test -n "$DATABASE_AUTH_TOKEN"
+          case "$DATABASE_URL" in
+            libsql://*) ;;
+            *) echo "DATABASE_URL must point at the existing Turso database" >&2; exit 1 ;;
+          esac
+          if [ "$live_run" = "true" ]; then
+            test -n "$POSTIZ_API_KEY"
+            test -n "$TELEGRAM_BOT_TOKEN"
+            test -n "$TELEGRAM_CHAT_ID"
+          fi
+      - name: Run fit sets pipeline
+        run: |
+          count="${{ inputs.count || '3' }}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            pnpm fits:daily --dry-run --count="$count"
+          else
+            pnpm fits:daily --count="$count"
+          fi

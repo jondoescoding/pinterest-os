@@ -1,0 +1,41 @@
+# dependencies
+/node_modules
+/.pnpm-store/
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# env
+.env
+.env*.local
+
+# turso / libsql
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+local.db*
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+.next-dev*.log
+.playwright-cli/
+tsconfig.tsbuildinfo
+__pycache__/
+*.py[cod]
+
+# generated visual evidence
+/artifacts/
+/.codex/artifacts/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.avif
